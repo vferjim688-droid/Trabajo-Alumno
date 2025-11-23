@@ -2,16 +2,682 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Trabajo Alumno - Inicio</title>
-</head>
-<body>
-    <h1>Cargando entorno de trabajo...</h1>
-    <p>Si ves esto, GitHub Pages funciona correctamente.</p>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AulaIA - Actividad Alumno</title>
+    <!-- Tailwind CSS para estilos rápidos -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Fuentes para mejorar la legibilidad -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&family=Source+Serif+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    
+    <script>
+        // Configuración de colores y animaciones personalizadas
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                        serif: ['Source Serif Pro', 'serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eff6ff', 100: '#dbeafe', 500: '#3b82f6', 600: '#2563eb', 900: '#1e3a8a',
+                        },
+                        energy: {
+                            high: '#22c55e', mid: '#eab308', low: '#ef4444'
+                        }
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'shake': 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both',
+                        'fade-in-up': 'fadeInUp 0.6s ease-out forwards',
+                    },
+                    keyframes: {
+                        fadeInUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        shake: {
+                            '10%, 90%': { transform: 'translate3d(-1px, 0, 0)' },
+                            '20%, 80%': { transform: 'translate3d(2px, 0, 0)' },
+                            '30%, 50%, 70%': { transform: 'translate3d(-4px, 0, 0)' },
+                            '40%, 60%': { transform: 'translate3d(4px, 0, 0)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Estilos base para la simulación de lectura */
+        .readable-content p { margin-bottom: 1.5rem; line-height: 1.8; color: #374151; font-family: 'Source Serif Pro', serif; font-size: 1.125rem; }
+        .readable-content strong { color: #111827; font-weight: 600; background: #fef3c7; padding: 0 4px; border-radius: 2px; }
+        .readable-content ul { margin-left: 1.5rem; margin-bottom: 1.5rem; list-style-type: disc; }
+        .readable-content li { margin-bottom: 0.5rem; font-family: 'Source Serif Pro', serif; font-size: 1.125rem; color: #374151; }
+        
+        /* Scrollbars personalizadas */
+        .thin-scroll::-webkit-scrollbar { width: 6px; }
+        .thin-scroll::-webkit-scrollbar-track { background: transparent; }
+        .thin-scroll::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 20px; }
 
-    <script type="module">
-        // Prueba de conexión básica
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        console.log("Firebase SDK cargado correctamente");
+        /* Utilidades de protección y efectos */
+        .no-copy { -webkit-user-select: none; -ms-user-select: none; user-select: none; }
+        .blurred-text { filter: blur(6px); opacity: 0.5; pointer-events: none; user-select: none; transition: filter 0.3s ease; }
+        
+        .damage-flash { animation: damageFlash 0.5s ease-out; }
+        @keyframes damageFlash {
+            0% { background-color: rgba(239, 68, 68, 0.2); }
+            100% { background-color: transparent; }
+        }
+        
+        /* Animación de entrada para elementos */
+        .animate-fade-in-up { animation: fadeInUp 0.6s ease-out forwards; }
+        .delay-100 { animation-delay: 0.1s; }
+        .delay-200 { animation-delay: 0.2s; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 h-screen flex flex-col overflow-hidden selection:bg-brand-100 selection:text-brand-900">
+
+    <!-- PANTALLA DE BIENVENIDA / LOGIN -->
+    <div id="login-screen" class="fixed inset-0 z-50 bg-white flex flex-col items-center justify-center p-4">
+        <div class="max-w-md w-full text-center space-y-8 animate-fade-in-up">
+            <div class="inline-flex items-center justify-center w-20 h-20 bg-brand-50 rounded-3xl mb-4 shadow-sm border border-brand-100">
+                <span class="text-4xl">🔋</span>
+            </div>
+            <div>
+                <h1 class="text-4xl font-bold text-gray-900 tracking-tight mb-2">AulaIA <span class="text-brand-600">Survival</span></h1>
+                <p id="welcome-activity-title" class="text-gray-500 text-lg">Cargando misión...</p>
+            </div>
+            <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-xl shadow-gray-200/50 text-left space-y-4 delay-100 animate-fade-in-up">
+                <div class="flex items-start gap-4">
+                    <div class="bg-red-100 text-red-700 p-2 rounded-lg text-xl">⚡</div>
+                    <div>
+                        <h3 class="font-bold text-gray-900">Gestión de Energía</h3>
+                        <p class="text-sm text-gray-500">Usar la IA consume energía. Los errores consumen el doble. Si llegas a 0, deberás terminar sin ayuda.</p>
+                    </div>
+                </div>
+            </div>
+            <button id="btn-start-mission" class="w-full bg-gray-900 hover:bg-black text-white text-lg font-medium py-4 px-8 rounded-xl shadow-lg transform transition hover:scale-[1.02] active:scale-95 delay-200 animate-fade-in-up cursor-pointer">
+                Aceptar Desafío
+            </button>
+        </div>
+    </div>
+
+    <!-- PANTALLA FINAL (RESULTADOS) -->
+    <div id="completion-screen" class="fixed inset-0 z-40 bg-white hidden flex-col items-center justify-center p-4">
+        <div class="max-w-lg w-full text-center space-y-6 animate-fade-in-up">
+            <div class="text-6xl mb-4" id="final-emoji">🎉</div>
+            <h2 class="text-3xl font-bold text-gray-900">Misión Cumplida</h2>
+            <p class="text-gray-500 text-lg">Has completado el entrenamiento.</p>
+            
+            <div class="bg-brand-50 p-6 rounded-2xl border border-brand-100 text-left relative overflow-hidden shadow-inner">
+                <!-- Sello de Rango -->
+                <div id="rank-badge" class="absolute top-2 right-2 text-4xl opacity-20 rotate-12 font-black uppercase text-brand-900">RANGO S</div>
+                
+                <h3 class="font-bold text-brand-900 mb-4 border-b border-brand-200 pb-2">Informe de Supervivencia:</h3>
+                <ul class="space-y-3 text-brand-800 text-sm">
+                    <li class="flex justify-between"><span>🔋 Energía Restante:</span> <span class="font-bold" id="final-stats-energy">0%</span></li>
+                    <li class="flex justify-between"><span>🤖 Consultas IA:</span> <span class="font-bold" id="final-stats-calls">0</span></li>
+                    <li class="flex justify-between"><span>✅ Precisión Media:</span> <span class="font-bold" id="final-stats-accuracy">0%</span></li>
+                </ul>
+            </div>
+
+            <button id="btn-download" class="w-full bg-green-600 hover:bg-green-700 text-white text-lg font-bold py-4 px-8 rounded-xl shadow-lg shadow-green-200 transform transition hover:scale-[1.02] flex items-center justify-center gap-2 cursor-pointer">
+                📥 Descargar Informe Táctico (.txt)
+            </button>
+        </div>
+    </div>
+
+    <!-- INTERFAZ PRINCIPAL DE LA APP -->
+    <div id="app-interface" class="flex-grow flex flex-col h-full hidden opacity-0 transition-opacity duration-700">
+        
+        <!-- HEADER -->
+        <header class="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between shrink-0 h-16 shadow-sm z-10 relative">
+            <div class="flex items-center gap-4">
+                <div class="w-8 h-8 bg-brand-600 rounded-lg flex items-center justify-center text-white font-bold">A</div>
+                <div class="hidden md:block">
+                    <h2 class="font-bold text-gray-700 text-sm">Misión en curso</h2>
+                    <div class="text-[10px] text-gray-400 uppercase tracking-widest" id="header-status">Modo Supervivencia</div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-8">
+                <!-- BARRA DE ENERGÍA (CENTRAL) -->
+                <div class="flex flex-col items-end w-40">
+                    <div class="flex justify-between w-full mb-1">
+                        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1">⚡ Energía Neural</span>
+                        <span id="energy-text" class="text-xs font-bold text-green-600">100%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden border border-gray-300 relative shadow-inner">
+                        <div id="energy-bar" class="bg-green-500 h-full w-full transition-all duration-500 ease-out shadow-[0_0_10px_rgba(34,197,94,0.5)]"></div>
+                        <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-white/30 to-transparent"></div>
+                    </div>
+                </div>
+
+                <!-- BARRAS DE PROGRESO DE CLASE -->
+                <div class="flex items-center gap-4">
+                    <!-- Media de la Clase -->
+                    <div class="flex flex-col items-end hidden sm:flex opacity-70" title="Progreso medio de tus compañeros">
+                        <span class="text-[10px] font-bold text-indigo-400 uppercase tracking-wider">Media Clase</span>
+                        <div class="w-24 bg-gray-100 rounded-full h-1.5 mt-1">
+                            <div id="class-avg-progress" class="bg-indigo-400 h-1.5 rounded-full w-[0%] transition-all duration-1000"></div>
+                        </div>
+                    </div>
+                    <!-- Avance Personal -->
+                    <div class="flex flex-col items-end w-24 opacity-60">
+                        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Avance</span>
+                        <div class="w-full bg-gray-100 rounded-full h-1.5 mt-1">
+                            <div id="my-progress" class="bg-brand-600 h-1.5 rounded-full w-[0%] transition-all duration-1000"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Avatar -->
+                <div class="flex items-center gap-2 ml-2 pl-4 border-l border-gray-200">
+                    <div id="my-avatar" class="w-9 h-9 rounded-full bg-brand-100 text-brand-700 border-2 border-brand-200 flex items-center justify-center text-lg animate-bounce shadow-sm">👤</div>
+                </div>
+            </div>
+        </header>
+
+        <!-- ESPACIO DE TRABAJO (GRID) -->
+        <main class="flex-grow flex flex-col lg:flex-row overflow-hidden">
+            
+            <!-- PANEL IZQUIERDO: FUENTE DE DATOS -->
+            <section class="w-full lg:w-[45%] bg-white border-r border-gray-200 flex flex-col h-1/2 lg:h-full transition-all duration-500 relative">
+                <div class="p-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center sticky top-0 z-10">
+                    <span class="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                        Material de Estudio
+                    </span>
+                    <div class="flex gap-2">
+                        <a id="source-link-btn" href="#" target="_blank" class="text-xs bg-indigo-50 border border-indigo-200 px-3 py-1 rounded-full text-indigo-700 hover:bg-indigo-100 shadow-sm flex items-center gap-1 transition decoration-none">
+                            <span>🔗</span> <span class="hidden sm:inline">Fuente Original</span>
+                        </a>
+                        <button id="toggle-source-btn" class="text-xs bg-white border border-gray-300 px-3 py-1 rounded-full text-gray-600 hover:bg-gray-50 shadow-sm flex items-center gap-1 transition cursor-pointer">
+                            <span id="eye-icon">👁️</span> <span class="hidden sm:inline" id="toggle-text">Mostrar Texto</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Área de contenido con efecto de desenfoque -->
+                <div class="relative flex-grow overflow-hidden bg-[#fafafa]">
+                    <!-- Overlay de Recuperación Activa -->
+                    <div id="blur-overlay" class="absolute inset-0 z-20 flex flex-col items-center justify-center bg-white/60 backdrop-blur-sm transition-opacity duration-500">
+                        <div class="text-center p-6 max-w-sm">
+                            <div class="text-4xl mb-4">🙈</div>
+                            <h3 class="font-bold text-gray-800 mb-2">Modo Recuperación</h3>
+                            <p class="text-gray-500 text-sm mb-4">Ahorra energía mental intentando recordar lo leído sin mirar.</p>
+                        </div>
+                    </div>
+                    <!-- Texto inyectado -->
+                    <div id="dynamic-content-area" class="h-full p-8 overflow-y-auto thin-scroll readable-content no-copy blurred-text transition-all duration-500"></div>
+                </div>
+            </section>
+
+            <!-- PANEL DERECHO: EDITOR ALUMNO -->
+            <section id="student-panel" class="w-full lg:w-[55%] bg-gray-50 flex flex-col h-1/2 lg:h-full relative shadow-[inset_4px_0_15px_-4px_rgba(0,0,0,0.1)] transition-colors duration-300">
+                <div class="flex-grow p-6 lg:p-8 overflow-y-auto thin-scroll pb-24">
+                    
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6 transition-all focus-within:ring-2 focus-within:ring-brand-100 focus-within:border-brand-300">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 id="section-title-display" class="text-xl font-bold text-gray-800 font-sans">...</h3>
+                            <span class="text-xs bg-gray-100 px-2 py-1 rounded text-gray-500 border border-gray-200" id="section-counter">1/X</span>
+                        </div>
+                        
+                        <!-- Pregunta Guía Pedagógica -->
+                        <div class="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-100">
+                            <h4 class="text-xs font-bold text-blue-800 uppercase mb-1">🎯 Objetivo</h4>
+                            <p class="text-sm text-blue-900 italic">Explica el concepto con tus propias palabras, centrándote en el "por qué".</p>
+                        </div>
+
+                        <div class="border-t border-gray-100 my-4"></div>
+                        
+                        <!-- Inputs -->
+                        <div class="mb-4">
+                             <input type="text" id="input-title" class="w-full text-lg font-medium text-gray-700 placeholder-gray-300 border-none focus:ring-0 p-0 focus:outline-none" placeholder="Título de tu síntesis...">
+                        </div>
+
+                        <div>
+                            <textarea id="input-summary" rows="8" class="w-full text-base text-gray-600 placeholder-gray-300 border-none focus:ring-0 p-0 resize-none font-sans leading-relaxed focus:outline-none" placeholder="Escribe aquí. Sé preciso para ahorrar energía..."></textarea>
+                        </div>
+                        
+                        <div class="flex justify-between items-center mt-2">
+                            <span id="warning-msg" class="text-xs text-red-500 font-bold hidden">⚠️ Demasiado corto (Penalización alta)</span>
+                            <div class="text-xs text-gray-300 font-medium"><span id="word-count">0</span> palabras</div>
+                        </div>
+                    </div>
+
+                    <!-- RESULTADOS DE IA -->
+                    <div id="results-area" class="hidden space-y-6 animate-fade-in-up">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- Aciertos -->
+                            <div class="bg-green-50 rounded-xl p-4 border border-green-100">
+                                <h4 class="font-bold text-green-900 text-sm mb-2">Conceptos Clave Usados</h4>
+                                <div id="feedback-good" class="flex flex-wrap gap-2"></div>
+                            </div>
+                            <!-- Fallos/Daño -->
+                            <div class="bg-amber-50 rounded-xl p-4 border border-amber-100">
+                                <h4 class="font-bold text-amber-900 text-sm mb-2">Faltantes (Daño: <span id="damage-calc" class="text-red-600 font-black">-0%</span>)</h4>
+                                <div id="feedback-missing" class="flex flex-wrap gap-2"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Referencia del Profesor -->
+                        <div class="bg-indigo-50 rounded-xl p-5 border border-indigo-100 relative overflow-hidden">
+                            <h4 class="font-bold text-indigo-900 text-sm mb-2 flex items-center gap-2"><span>🏆</span> Referencia Docente</h4>
+                            <p id="prototype-display" class="text-indigo-800 text-sm italic leading-relaxed opacity-90"></p>
+                        </div>
+
+                        <button id="btn-next" class="w-full py-4 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl shadow-lg transition flex items-center justify-center gap-2 cursor-pointer">
+                            Siguiente Apartado →
+                        </button>
+                    </div>
+                </div>
+
+                <!-- BOTÓN DE ACCIÓN (IA) -->
+                <div class="absolute bottom-6 right-6 left-6 md:left-auto md:w-auto flex justify-end z-20">
+                    <button id="btn-analyze" class="w-full md:w-auto bg-gray-900 hover:bg-black text-white font-bold py-3 px-8 rounded-full shadow-xl transform transition hover:scale-105 flex items-center justify-center gap-2 group border-2 border-transparent cursor-pointer">
+                        <span class="group-hover:rotate-12 transition-transform">✨</span> 
+                        <span class="flex flex-col items-start text-left leading-tight">
+                            <span>Analizar y Evaluar</span>
+                            <span class="text-[10px] text-gray-400 font-normal">Coste base: -15% energía</span>
+                        </span>
+                    </button>
+                </div>
+                
+                <!-- Overlay "Sin Energía" -->
+                <div id="no-energy-overlay" class="absolute inset-0 bg-gray-900/80 backdrop-blur-sm z-30 hidden flex-col items-center justify-center text-center p-6 animate-fade-in-up">
+                    <div class="text-5xl mb-4">🪫</div>
+                    <h3 class="text-2xl font-bold text-white mb-2">Energía Agotada</h3>
+                    <p class="text-gray-300 mb-6 max-w-sm">Has consumido todos tus recursos neurales. La IA ya no puede ayudarte. Debes confiar en tu instinto para terminar.</p>
+                    <button id="btn-force-manual" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-full shadow-lg cursor-pointer">
+                        Continuar sin ayuda
+                    </button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- LOGICA DE LA APLICACIÓN -->
+    <script>
+        // --- 1. CONFIGURACIÓN Y DATOS DE LA ACTIVIDAD ---
+        // Estos datos vendrían inyectados desde AulaIA (Backend)
+        const mockActivityPayload = {
+            titulo_actividad: "Fundamentos de Computación Física",
+            source_url: "https://classroom.google.com/u/0/h", // Enlace a la fuente
+            contenido: [
+                {
+                    id: 1,
+                    titulo_seccion: "1. Definición y Concepto",
+                    html_cuerpo: `
+                        <h1 class="text-2xl font-bold text-gray-900 mb-6 font-sans">Definición</h1>
+                        <p>La <strong>computación física</strong> conecta el mundo digital (bits) y el mundo analógico (átomos).</p>
+                        <p>Para lograr esta conexión se utilizan dos tipos de dispositivos fundamentales:</p>
+                        <ul>
+                            <li><strong>Sensores:</strong> Permiten 'sentir' el entorno (entrada).</li>
+                            <li><strong>Actuadores:</strong> Permiten 'modificar' el entorno (salida).</li>
+                        </ul>
+                    `,
+                    ia_config: {
+                        keywords: ["sensores", "actuadores", "mundo físico", "digital"],
+                        prototipo: "La computación física conecta el mundo digital con el real mediante sensores (entrada) y actuadores (salida)."
+                    }
+                },
+                {
+                    id: 2,
+                    titulo_seccion: "2. El Microcontrolador",
+                    html_cuerpo: `
+                        <h1 class="text-2xl font-bold text-gray-900 mb-6 font-sans">El Cerebro</h1>
+                        <p>Un microcontrolador es un pequeño ordenador en un solo chip. Es el encargado de ejecutar las instrucciones lógicas.</p>
+                    `,
+                    ia_config: {
+                        keywords: ["chip", "ordenador", "instrucciones"],
+                        prototipo: "El microcontrolador actúa como el cerebro del sistema procesando las instrucciones."
+                    }
+                }
+            ]
+        };
+
+        // --- 2. ESTADO DE LA APLICACIÓN ---
+        let currentStep = 0;
+        let isSourceVisible = false;
+        let studentWork = []; 
+        let currentFeedback = null;
+        let myAvatarIcon = "";
+        
+        // Variables de Gamificación
+        let currentEnergy = 100;
+        let totalAICalls = 0;
+        let accumulatedAccuracy = 0;
+        let classAvgProgress = 0; // Media de clase simulada
+        
+        const COST_BASE = 15;
+        const COST_PENALTY_PER_MISSING = 5;
+
+        // --- 3. INICIALIZACIÓN ROBUSTA (Listeners) ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Cargar título en portada
+            document.getElementById('welcome-activity-title').textContent = mockActivityPayload.titulo_actividad;
+
+            // Asignación segura de eventos
+            document.getElementById('btn-start-mission').addEventListener('click', enterApp);
+            document.getElementById('toggle-source-btn').addEventListener('click', toggleSourceText);
+            document.getElementById('btn-analyze').addEventListener('click', simulateAI);
+            document.getElementById('btn-next').addEventListener('click', nextSection);
+            document.getElementById('btn-force-manual').addEventListener('click', forceManualFinish);
+            document.getElementById('btn-download').addEventListener('click', downloadWork);
+            
+            // Contador de palabras
+            document.getElementById('input-summary').addEventListener('input', handleInputStats);
+
+            // Bloqueo de Copiar/Pegar para fomentar síntesis
+            document.getElementById('dynamic-content-area').addEventListener('copy', (e) => {
+                e.preventDefault();
+                console.log("Copiado desactivado pedagógicamente.");
+            });
+        });
+
+        function handleInputStats(e) {
+            const val = e.target.value.trim();
+            const count = val.length === 0 ? 0 : val.split(/\s+/).length;
+            document.getElementById('word-count').textContent = count;
+            
+            const warn = document.getElementById('warning-msg');
+            if(count > 0 && count < 15) {
+                warn.classList.remove('hidden');
+            } else {
+                warn.classList.add('hidden');
+            }
+        }
+
+        // --- 4. FLUJO PRINCIPAL ---
+
+        function enterApp() {
+            try {
+                // Asignar avatar aleatorio
+                const avatars = ["🦊", "🐼", "🐸", "🐙", "🦄", "🤖", "🚀", "🦁"];
+                myAvatarIcon = avatars[Math.floor(Math.random() * avatars.length)];
+                document.getElementById('my-avatar').textContent = myAvatarIcon;
+                
+                // Cargar datos
+                document.getElementById('header-activity-title').textContent = mockActivityPayload.titulo_actividad;
+                const sourceBtn = document.getElementById('source-link-btn');
+                if(sourceBtn) sourceBtn.href = mockActivityPayload.source_url;
+
+                renderSection(0);
+                
+                // Transición de pantallas
+                const login = document.getElementById('login-screen');
+                const app = document.getElementById('app-interface');
+                
+                login.style.opacity = '0';
+                setTimeout(() => {
+                    login.style.display = 'none';
+                    app.style.display = 'flex';
+                    // Forzar reflow para animación CSS
+                    void app.offsetWidth; 
+                    app.style.opacity = '1';
+                    
+                    startClassSimulation(); // Iniciar "Bots"
+                }, 500);
+
+            } catch (e) {
+                console.error("Error iniciando app:", e);
+                alert("Error al iniciar. Por favor recarga.");
+            }
+        }
+
+        function renderSection(index) {
+            const data = mockActivityPayload.contenido[index];
+            if(!data) return;
+
+            // Renderizar contenido izquierdo
+            const contentArea = document.getElementById('dynamic-content-area');
+            contentArea.innerHTML = data.html_cuerpo;
+            
+            // Estado inicial: Texto oculto (Recuperación Activa)
+            isSourceVisible = true; 
+            toggleSourceText(); 
+            currentFeedback = null;
+
+            // Renderizar contenido derecho
+            document.getElementById('section-title-display').textContent = data.titulo_seccion;
+            document.getElementById('section-counter').textContent = `${index + 1}/${mockActivityPayload.contenido.length}`;
+            
+            const titleInput = document.getElementById('input-title');
+            const summaryInput = document.getElementById('input-summary');
+            
+            titleInput.value = "";
+            summaryInput.value = "";
+            titleInput.disabled = false;
+            summaryInput.disabled = false;
+            
+            document.getElementById('results-area').classList.add('hidden');
+            
+            // Restaurar botón IA según energía
+            const btn = document.getElementById('btn-analyze');
+            if(currentEnergy > 5) {
+                document.getElementById('no-energy-overlay').style.display = 'none';
+                btn.style.display = 'inline-flex';
+                btn.disabled = false;
+                btn.classList.remove('opacity-75', 'cursor-not-allowed', 'opacity-50', 'grayscale');
+                btn.innerHTML = `<span class="group-hover:rotate-12 transition-transform">✨</span><span class="flex flex-col items-start text-left leading-tight"><span>Analizar y Evaluar</span><span class="text-[10px] text-gray-400 font-normal">Coste base: -${COST_BASE}% energía</span></span>`;
+            } else {
+                document.getElementById('no-energy-overlay').style.display = 'flex';
+                btn.style.display = 'none';
+            }
+
+            contentArea.scrollTop = 0;
+            updateProgress();
+        }
+
+        function toggleSourceText() {
+            const content = document.getElementById('dynamic-content-area');
+            const overlay = document.getElementById('blur-overlay');
+            const btnText = document.getElementById('toggle-text');
+            const btnIcon = document.getElementById('eye-icon');
+
+            isSourceVisible = !isSourceVisible;
+            if (isSourceVisible) {
+                // Mostrar texto
+                content.classList.remove('blurred-text');
+                overlay.style.opacity = '0';
+                setTimeout(() => overlay.style.display = 'none', 500);
+                btnText.textContent = "Ocultar";
+                btnIcon.textContent = "🙈";
+            } else {
+                // Ocultar texto (Blur)
+                overlay.style.display = 'flex';
+                setTimeout(() => {
+                    content.classList.add('blurred-text');
+                    overlay.style.opacity = '1';
+                }, 10);
+                btnText.textContent = "Mostrar";
+                btnIcon.textContent = "👁️";
+            }
+        }
+
+        // --- 5. SIMULACIÓN DE IA (Frontend) ---
+        // * En producción, esto se reemplazaría por una llamada fetch a Cloud Functions *
+        function simulateAI() {
+            const input = document.getElementById('input-summary').value;
+            const wordCount = input.trim().split(/\s+/).filter(w => w.length > 0).length;
+
+            if(wordCount < 5) { 
+                alert("El texto es muy corto para analizarlo."); 
+                return; 
+            }
+
+            if(currentEnergy <= 5) {
+                document.getElementById('no-energy-overlay').style.display = 'flex';
+                return;
+            }
+
+            const btn = document.getElementById('btn-analyze');
+            btn.innerHTML = `Conectando IA...`;
+            btn.disabled = true;
+            btn.classList.add('opacity-75', 'cursor-not-allowed');
+
+            // Simular delay de red
+            setTimeout(() => {
+                let totalCost = COST_BASE;
+                const config = mockActivityPayload.contenido[currentStep].ia_config;
+                const textLower = input.toLowerCase();
+                
+                // Lógica de coincidencia simple
+                const found = config.keywords.filter(k => textLower.includes(k));
+                const missing = config.keywords.filter(k => !textLower.includes(k));
+
+                // Calcular daño
+                const penalty = missing.length * COST_PENALTY_PER_MISSING;
+                totalCost += penalty;
+                if(wordCount < 15) totalCost += 10; // Penalización extra por brevedad
+
+                // Aplicar daño
+                currentEnergy = Math.max(0, currentEnergy - totalCost);
+                updateEnergyUI();
+                damageEffect();
+                
+                // Stats
+                totalAICalls++;
+                const accuracy = (found.length / config.keywords.length) * 100;
+                accumulatedAccuracy += accuracy;
+
+                // Bloquear UI
+                document.getElementById('input-title').disabled = true;
+                document.getElementById('input-summary').disabled = true;
+                btn.style.display = 'none';
+
+                currentFeedback = { found, missing, prototype: config.prototipo };
+
+                // Mostrar Resultados
+                document.getElementById('results-area').classList.remove('hidden');
+                
+                document.getElementById('feedback-good').innerHTML = found.length ? 
+                    found.map(k=>`<span class="px-2 py-1 bg-white border border-green-200 rounded text-xs text-green-700 font-bold">✓ ${k}</span>`).join('') : 
+                    `<span class="text-xs text-gray-400">0 detectados</span>`;
+                
+                document.getElementById('damage-calc').textContent = `-${totalCost}% Energía`;
+                
+                document.getElementById('feedback-missing').innerHTML = missing.length ? 
+                    missing.map(k=>`<span class="px-2 py-1 bg-white border border-amber-200 rounded text-xs text-amber-700 font-bold">⚠️ ${k} (-${COST_PENALTY_PER_MISSING}%)</span>`).join('') : 
+                    `<span class="text-xs text-green-600 font-bold">¡Impecable!</span>`;
+                
+                document.getElementById('prototype-display').textContent = `"${config.prototipo}"`;
+            }, 800);
+        }
+
+        function updateEnergyUI() {
+            const bar = document.getElementById('energy-bar');
+            const text = document.getElementById('energy-text');
+            
+            let colorClass = 'bg-green-500';
+            let textColorClass = 'text-green-600';
+            
+            if(currentEnergy < 50) { colorClass = 'bg-yellow-500'; textColorClass = 'text-yellow-600'; }
+            if(currentEnergy < 20) { colorClass = 'bg-red-600'; textColorClass = 'text-red-600'; }
+
+            bar.className = `h-full w-full transition-all duration-500 ease-out ${colorClass}`;
+            bar.style.width = `${currentEnergy}%`;
+            
+            text.textContent = `${currentEnergy}%`;
+            text.className = `text-xs font-bold ${textColorClass}`;
+        }
+
+        function damageEffect() {
+            const panel = document.getElementById('student-panel');
+            panel.classList.add('damage-flash');
+            panel.classList.add('animate-shake');
+            setTimeout(() => {
+                panel.classList.remove('damage-flash');
+                panel.classList.remove('animate-shake');
+            }, 500);
+        }
+
+        function forceManualFinish() {
+            document.getElementById('no-energy-overlay').style.display = 'none';
+            currentFeedback = { found: [], missing: [], prototype: "No disponible (Sin Energía)" };
+            nextSection();
+        }
+
+        function nextSection() {
+            // Guardar trabajo
+            studentWork.push({
+                titulo_seccion: mockActivityPayload.contenido[currentStep].titulo_seccion,
+                titulo_alumno: document.getElementById('input-title').value,
+                resumen_alumno: document.getElementById('input-summary').value,
+                feedback_obtenido: currentFeedback
+            });
+
+            currentStep++;
+            if (currentStep < mockActivityPayload.contenido.length) {
+                renderSection(currentStep);
+            } else {
+                showCompletionScreen();
+            }
+        }
+
+        function updateProgress() {
+            const progress = (currentStep / mockActivityPayload.contenido.length) * 100;
+            document.getElementById('my-progress').style.width = `${progress}%`;
+        }
+
+        function showCompletionScreen() {
+            document.getElementById('completion-screen').style.display = 'flex';
+            
+            // Calcular Rango
+            let rank = "C";
+            let rankColor = "text-gray-500";
+            if(currentEnergy > 30) { rank = "B"; rankColor = "text-blue-500"; }
+            if(currentEnergy > 60) { rank = "A"; rankColor = "text-purple-500"; }
+            if(currentEnergy > 80) { rank = "S"; rankColor = "text-yellow-500"; }
+
+            const badge = document.getElementById('rank-badge');
+            badge.textContent = `RANGO ${rank}`;
+            badge.className = `absolute top-2 right-2 text-6xl opacity-20 rotate-12 font-black uppercase ${rankColor}`;
+            document.getElementById('final-emoji').textContent = rank === "S" ? "👑" : "🛡️";
+
+            document.getElementById('final-stats-energy').textContent = `${currentEnergy}%`;
+            document.getElementById('final-stats-calls').textContent = totalAICalls;
+            document.getElementById('final-stats-accuracy').textContent = `${Math.round(accumulatedAccuracy / mockActivityPayload.contenido.length)}%`;
+        }
+
+        function downloadWork() {
+            let content = `INFORME TÁCTICO DE APRENDIZAJE\n`;
+            content += `RANGO OBTENIDO: ${document.getElementById('rank-badge').textContent}\n`;
+            content += `ENERGÍA RESTANTE: ${currentEnergy}%\n`;
+            content += `=========================================\n\n`;
+
+            studentWork.forEach((item, index) => {
+                content += `MISIÓN ${index + 1}: ${item.titulo_seccion}\n`;
+                content += `SÍNTESIS: ${item.resumen_alumno}\n`;
+                if(item.feedback_obtenido && item.feedback_obtenido.prototype !== "No disponible (Sin Energía)") {
+                    content += `[IA LOG] Aciertos: ${item.feedback_obtenido.found.join(', ')}\n`;
+                } else {
+                    content += `[IA LOG] Ejecución Manual\n`;
+                }
+                content += `-----------------------------------------\n`;
+            });
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `Mision_AulaIA_${Date.now()}.txt`;
+            link.click();
+        }
+
+        // --- 6. SIMULACIÓN DE CLASE (Bots) ---
+        function startClassSimulation() {
+            const classAvgBar = document.getElementById('class-avg-progress');
+            if(!classAvgBar) return;
+
+            // Simular avance progresivo de la clase
+            setInterval(() => {
+                if(classAvgProgress < 95) {
+                    classAvgProgress += (Math.random() * 2); 
+                    classAvgBar.style.width = `${Math.min(classAvgProgress, 100)}%`;
+                }
+            }, 2000);
+        }
+
     </script>
 </body>
 </html>
