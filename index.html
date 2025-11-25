@@ -7,11 +7,19 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&family=Source+Serif+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
     
-    <!-- FIREBASE SDKs (Versión Compat para facilidad de uso) -->
+    <!-- 1. IMPORTANTE: Mapa de importación para usar la IA directamente en el navegador -->
+    <script type="importmap">
+      {
+        "imports": {
+          "@google/generative-ai": "https://esm.run/@google/generative-ai"
+        }
+      }
+    </script>
+
+    <!-- FIREBASE SDKs (Compat) -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-functions-compat.js"></script>
 
     <script>
         tailwind.config = {
@@ -19,19 +27,19 @@
                 extend: {
                     fontFamily: { sans: ['Outfit', 'sans-serif'], serif: ['Source Serif Pro', 'serif'] },
                     colors: { brand: { 50: '#eff6ff', 100: '#dbeafe', 500: '#3b82f6', 600: '#2563eb', 900: '#1e3a8a' }, energy: { high: '#22c55e', mid: '#eab308', low: '#ef4444' } },
-                    animation: { 'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite', 'damage': 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both', 'fade-in': 'fadeInUp 0.6s ease-out forwards' },
+                    animation: { 'damage': 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both', 'fade-in': 'fadeInUp 0.6s ease-out forwards' },
                     keyframes: { fadeInUp: { '0%': { opacity: '0', transform: 'translateY(20px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } }, shake: { '10%, 90%': { transform: 'translate3d(-1px, 0, 0)' }, '20%, 80%': { transform: 'translate3d(2px, 0, 0)' }, '30%, 50%, 70%': { transform: 'translate3d(-4px, 0, 0)' }, '40%, 60%': { transform: 'translate3d(4px, 0, 0)' } } }
                 }
             }
         }
     </script>
     <style>
+        /* Estilos base */
         .readable-content p { margin-bottom: 1.5rem; line-height: 1.8; color: #374151; font-family: 'Source Serif Pro', serif; font-size: 1.125rem; }
-        .readable-content strong { color: #111827; font-weight: 600; background: #fef3c7; padding: 0 4px; border-radius: 2px; }
         .readable-content ul { margin-left: 1.5rem; margin-bottom: 1.5rem; list-style-type: disc; }
         .readable-content li { margin-bottom: 0.5rem; font-family: 'Source Serif Pro', serif; font-size: 1.125rem; color: #374151; }
         .thin-scroll::-webkit-scrollbar { width: 6px; } .thin-scroll::-webkit-scrollbar-track { background: transparent; } .thin-scroll::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 20px; }
-        .no-copy { -webkit-user-select: none; -ms-user-select: none; user-select: none; }
+        .no-copy { -webkit-user-select: none; user-select: none; }
         .blurred-text { filter: blur(6px); opacity: 0.5; pointer-events: none; user-select: none; transition: filter 0.3s ease; }
         .damage-flash { animation: damageFlash 0.5s ease-out; }
         @keyframes damageFlash { 0% { background-color: rgba(239, 68, 68, 0.2); } 100% { background-color: transparent; } }
@@ -40,68 +48,62 @@
 </head>
 <body class="bg-gray-50 text-gray-800 h-screen flex flex-col overflow-hidden selection:bg-brand-100 selection:text-brand-900">
 
-    <!-- LOGIN / SPLASH -->
+    <!-- PANTALLA DE CARGA -->
     <div id="login-screen" class="fixed inset-0 z-50 bg-white flex flex-col items-center justify-center p-4">
         <div class="max-w-md w-full text-center space-y-8 animate-fade-in">
             <div class="inline-flex items-center justify-center w-20 h-20 bg-brand-50 rounded-3xl mb-4 shadow-sm border border-brand-100"><span class="text-4xl">🔋</span></div>
-            <div><h1 class="text-4xl font-bold text-gray-900 tracking-tight mb-2">AulaIA <span class="text-brand-600">Survival</span></h1><p id="welcome-activity-title" class="text-gray-500 text-lg">Conectando...</p></div>
-            <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-xl shadow-gray-200/50 text-left space-y-4">
-                <div class="flex items-start gap-4"><div class="bg-red-100 text-red-700 p-2 rounded-lg text-xl">⚡</div><div><h3 class="font-bold text-gray-900">Gestión de Energía</h3><p class="text-sm text-gray-500">Usar la IA consume energía. Los errores consumen el doble.</p></div></div>
-            </div>
-            <button id="btn-start-mission" class="w-full bg-gray-900 hover:bg-black text-white text-lg font-medium py-4 px-8 rounded-xl shadow-lg transform transition hover:scale-[1.02] active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed" disabled>Cargando datos...</button>
-            <p id="status-msg" class="text-xs text-gray-400 mt-2 h-4"></p>
+            <div><h1 class="text-4xl font-bold text-gray-900 tracking-tight mb-2">AulaIA <span class="text-brand-600">Survival</span></h1><p id="welcome-activity-title" class="text-gray-500 text-lg">Inicializando...</p></div>
+            <button id="btn-start-mission" class="w-full bg-gray-900 hover:bg-black text-white text-lg font-medium py-4 px-8 rounded-xl shadow-lg transform transition hover:scale-[1.02] active:scale-95 cursor-pointer" disabled>Cargando...</button>
+            <p id="status-msg" class="text-xs text-gray-400 mt-2 h-4 text-center"></p>
         </div>
     </div>
 
     <!-- PANTALLA FINAL -->
     <div id="completion-screen" class="fixed inset-0 z-40 bg-white hidden flex-col items-center justify-center p-4">
         <div class="max-w-lg w-full text-center space-y-6 animate-fade-in">
-            <div class="text-6xl mb-4" id="final-emoji">🎉</div>
+            <div class="text-6xl mb-4">🎉</div>
             <h2 class="text-3xl font-bold text-gray-900">Misión Cumplida</h2>
-            <div class="bg-brand-50 p-6 rounded-2xl border border-brand-100 text-left relative overflow-hidden shadow-inner">
+            <div class="bg-brand-50 p-6 rounded-2xl border border-brand-100 text-left shadow-inner">
                 <div id="rank-badge" class="absolute top-2 right-2 text-4xl opacity-20 rotate-12 font-black uppercase text-brand-900">RANGO S</div>
                 <ul class="space-y-3 text-brand-800 text-sm">
                     <li class="flex justify-between"><span>🔋 Energía Final:</span> <span class="font-bold" id="final-stats-energy">0%</span></li>
                     <li class="flex justify-between"><span>🤖 Ayudas IA:</span> <span class="font-bold" id="final-stats-calls">0</span></li>
-                    <li class="flex justify-between"><span>✅ Precisión:</span> <span class="font-bold" id="final-stats-accuracy">0%</span></li>
                 </ul>
             </div>
-            <button id="btn-download" class="w-full bg-green-600 hover:bg-green-700 text-white text-lg font-bold py-4 px-8 rounded-xl shadow-lg transform transition hover:scale-[1.02] flex items-center justify-center gap-2 cursor-pointer">📥 Descargar Informe</button>
+            <button id="btn-download" class="w-full bg-green-600 hover:bg-green-700 text-white text-lg font-bold py-4 px-8 rounded-xl shadow-lg cursor-pointer">📥 Descargar Informe</button>
         </div>
     </div>
 
-    <!-- APP INTERFACE -->
+    <!-- INTERFAZ PRINCIPAL -->
     <div id="app-interface" class="flex-grow flex flex-col h-full hidden opacity-0 transition-opacity duration-700">
         <header class="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between shrink-0 h-16 shadow-sm z-10 relative">
             <div class="flex items-center gap-4"><div class="w-8 h-8 bg-brand-600 rounded-lg flex items-center justify-center text-white font-bold">A</div><div class="hidden md:block"><h2 class="font-bold text-gray-700 text-sm">Misión en curso</h2><div class="text-[10px] text-gray-400 uppercase tracking-widest">Survival Mode</div></div></div>
             <div class="flex items-center gap-8">
                 <div class="flex flex-col items-end w-40"><div class="flex justify-between w-full mb-1"><span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1">⚡ Energía</span><span id="energy-text" class="text-xs font-bold text-green-600">100%</span></div><div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden border border-gray-300 relative shadow-inner"><div id="energy-bar" class="bg-green-500 h-full w-full transition-all duration-500 ease-out"></div></div></div>
-                <div class="flex items-center gap-4"><div class="flex flex-col items-end hidden sm:flex opacity-70"><span class="text-[10px] font-bold text-indigo-400 uppercase tracking-wider">Media Clase</span><div class="w-24 bg-gray-100 rounded-full h-1.5 mt-1"><div id="class-avg-progress" class="bg-indigo-400 h-1.5 rounded-full w-[0%] transition-all duration-1000"></div></div></div><div class="flex flex-col items-end w-24 opacity-60"><span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Avance</span><div class="w-full bg-gray-100 rounded-full h-1.5 mt-1"><div id="my-progress" class="bg-brand-600 h-1.5 rounded-full w-[0%] transition-all duration-1000"></div></div></div></div>
                 <div class="flex items-center gap-2 ml-2 pl-4 border-l border-gray-200"><div id="my-avatar" class="w-9 h-9 rounded-full bg-brand-100 text-brand-700 border-2 border-brand-200 flex items-center justify-center text-lg animate-bounce shadow-sm">👤</div></div>
             </div>
         </header>
 
         <main class="flex-grow flex flex-col lg:flex-row overflow-hidden">
-            <!-- IZQUIERDA -->
+            <!-- IZQUIERDA: FUENTE -->
             <section class="w-full lg:w-[45%] bg-white border-r border-gray-200 flex flex-col h-1/2 lg:h-full transition-all duration-500 relative">
                 <div class="p-4 border-b border-gray-100 bg-gray-50/50 flex flex-col sm:flex-row justify-between items-center sticky top-0 z-10 gap-2">
                     <span class="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">Material de Estudio</span>
                     <div id="resource-buttons-container" class="flex gap-2 flex-wrap justify-end"></div>
                 </div>
                 <div class="relative flex-grow overflow-hidden bg-[#fafafa]">
-                    <div id="blur-overlay" class="absolute inset-0 z-20 flex flex-col items-center justify-center bg-white/60 backdrop-blur-sm transition-opacity duration-500"><div class="text-center p-6 max-w-sm"><div class="text-4xl mb-4">🙈</div><h3 class="font-bold text-gray-800 mb-2">Modo Recuperación</h3><p class="text-gray-500 text-sm mb-4">Ahorra energía recordando lo leído sin mirar.</p></div></div>
+                    <div id="blur-overlay" class="absolute inset-0 z-20 flex flex-col items-center justify-center bg-white/60 backdrop-blur-sm transition-opacity duration-500"><div class="text-center p-6 max-w-sm"><div class="text-4xl mb-4">🙈</div><h3 class="font-bold text-gray-800 mb-2">Recuperación Activa</h3><p class="text-gray-500 text-sm mb-4">Ahorra energía recordando lo leído sin mirar.</p></div></div>
                     <div id="dynamic-content-area" class="h-full p-8 overflow-y-auto thin-scroll readable-content no-copy blurred-text transition-all duration-500"></div>
                 </div>
             </section>
 
-            <!-- DERECHA -->
+            <!-- DERECHA: TRABAJO -->
             <section id="student-panel" class="w-full lg:w-[55%] bg-gray-50 flex flex-col h-1/2 lg:h-full relative shadow-[inset_4px_0_15px_-4px_rgba(0,0,0,0.1)] transition-colors duration-300">
                 <div class="flex-grow p-6 lg:p-8 overflow-y-auto thin-scroll pb-24">
                     <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6 transition-all focus-within:ring-2 focus-within:ring-brand-100 focus-within:border-brand-300">
                         <div class="flex justify-between items-center mb-4"><h3 id="section-title-display" class="text-xl font-bold text-gray-800 font-sans">...</h3><span class="text-xs bg-gray-100 px-2 py-1 rounded text-gray-500 border border-gray-200" id="section-counter">1/X</span></div>
                         <div class="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-100"><h4 class="text-xs font-bold text-blue-800 uppercase mb-1">🎯 Objetivo</h4><p class="text-sm text-blue-900 italic">Explica el concepto con tus propias palabras.</p></div>
-                        <div class="border-t border-gray-100 my-4"></div>
-                        <div class="mb-4"><input type="text" id="input-title" class="w-full text-lg font-medium text-gray-700 placeholder-gray-300 border-none focus:ring-0 p-0 focus:outline-none" placeholder="Título..."></div>
+                        <div class="mb-4"><input type="text" id="input-title" class="w-full text-lg font-medium text-gray-700 placeholder-gray-300 border-none focus:ring-0 p-0 focus:outline-none" placeholder="Título de tu síntesis..."></div>
                         <div><textarea id="input-summary" rows="8" class="w-full text-base text-gray-600 placeholder-gray-300 border-none focus:ring-0 p-0 resize-none font-sans leading-relaxed focus:outline-none" placeholder="Escribe aquí..."></textarea></div>
                         <div class="flex justify-between items-center mt-2"><span id="warning-msg" class="text-xs text-red-500 font-bold hidden">⚠️ Muy corto</span><div class="text-xs text-gray-300 font-medium"><span id="word-count">0</span> palabras</div></div>
                     </div>
@@ -114,29 +116,40 @@
                 <div class="absolute bottom-6 right-6 left-6 md:left-auto md:w-auto flex justify-end z-20">
                     <button id="btn-analyze" class="w-full md:w-auto bg-gray-900 hover:bg-black text-white font-bold py-3 px-8 rounded-full shadow-xl transform transition hover:scale-105 flex items-center justify-center gap-2 group border-2 border-transparent cursor-pointer"><span class="group-hover:rotate-12 transition-transform">✨</span> <span class="flex flex-col items-start text-left leading-tight"><span>Analizar</span><span class="text-[10px] text-gray-400 font-normal">Coste: -15% energía</span></span></button>
                 </div>
-                <div id="no-energy-overlay" class="absolute inset-0 bg-gray-900/80 backdrop-blur-sm z-30 hidden flex-col items-center justify-center text-center p-6 animate-fade-in"><div class="text-5xl mb-4">🪫</div><h3 class="text-2xl font-bold text-white mb-2">Energía Agotada</h3><p class="text-gray-300 mb-6 max-w-sm">Debes confiar en tu instinto.</p><button id="btn-force-manual" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-full shadow-lg cursor-pointer">Continuar sin ayuda</button></div>
             </section>
         </main>
     </div>
 
-    <script>
-        // ================= CONFIGURACIÓN FIREBASE =================
-        // ⚠️ SUSTITUYE ESTO CON TUS DATOS DE FIREBASE CONSOLE ⚠️
+    <!-- ⚠️ ZONA DE CONFIGURACIÓN: AQUÍ DEBES PEGAR TUS CLAVES ⚠️ -->
+    <script type="module">
+        import { GoogleGenerativeAI } from "@google/generative-ai";
+
+        // 1. PEGA AQUÍ TU CLAVE DE GEMINI (La que empieza por AIza...)
+        // Obtenla en: https://aistudio.google.com/app/apikey
+        const GEMINI_API_KEY = "TU_CLAVE_API_DE_GEMINI_AQUI";
+
+        // 2. PEGA AQUÍ TU CONFIGURACIÓN DE FIREBASE (Para guardar progreso)
         const firebaseConfig = {
-            apiKey: "",
-            authDomain: "trabajo-alumno.firebaseapp.com",
-            projectId: "trabajo-alumno",
-            storageBucket: "trabajo-alumno.firebasestorage.app",
-            messagingSenderId: "922915834506",
-            appId: "1:922915834506:web:581faaee27fa644c027b73"
+            apiKey: "TU_API_KEY_DE_FIREBASE",
+            authDomain: "TU_PROYECTO.firebaseapp.com",
+            projectId: "TU_PROYECTO",
+            storageBucket: "TU_PROYECTO.appspot.com",
+            messagingSenderId: "123...",
+            appId: "1:123..."
         };
-        // ==========================================================
 
-        let app, db, functions, auth, currentActivityId;
-        let activityPayload = null; // Datos reales
+        // --- INICIO DEL SISTEMA ---
+        let app, db, auth, genAI;
+        let currentActivityId, activityPayload;
         let isDemoMode = false;
+        
+        // Estado del juego
+        let currentStep=0, isSourceVisible=false, studentWork=[], currentFeedback=null, myAvatarIcon="", currentEnergy=100, totalAICalls=0, accumulatedAccuracy=0;
+        const COST_BASE=15, COST_PENALTY=5;
+        
+        const getEl = (id) => document.getElementById(id);
 
-        // MOCK DATA (Respaldo si no hay Firebase)
+        // Datos Demo por si falla la red
         const mockPayload = {
             titulo_actividad: "Demo: Computación Física",
             source_url: "#", rubric_url: "#",
@@ -146,63 +159,54 @@
             ]
         };
 
-        // STATE
-        let currentStep=0, isSourceVisible=false, studentWork=[], currentFeedback=null, myAvatarIcon="", currentEnergy=100, totalAICalls=0, accumulatedAccuracy=0, classAvgProgress=0;
-        const COST_BASE=15, COST_PENALTY=5;
-        const getEl = (id) => document.getElementById(id);
-
-        document.addEventListener('DOMContentLoaded', async () => {
-            // Setup Listeners
+        async function init() {
+            // Listeners
             getEl('btn-start-mission').addEventListener('click', startGame);
             getEl('toggle-source-btn').addEventListener('click', toggleSourceText);
-            getEl('btn-analyze').addEventListener('click', analyzeResponse); // Ahora llama a la función inteligente
+            getEl('btn-analyze').addEventListener('click', analyzeWithGeminiDirect); // Llamada directa
             getEl('btn-next').addEventListener('click', nextSection);
-            getEl('btn-force-manual').addEventListener('click', forceManualFinish);
             getEl('btn-download').addEventListener('click', downloadWork);
             getEl('input-summary').addEventListener('input', handleInputStats);
-            getEl('dynamic-content-area').addEventListener('copy', (e) => { e.preventDefault(); });
+            getEl('dynamic-content-area').addEventListener('copy', (e) => e.preventDefault());
 
-            // Init Firebase
             try {
-                if (firebaseConfig.apiKey !== "TU_API_KEY_AQUI") {
+                // Iniciar IA
+                if (!GEMINI_API_KEY.includes("TU_CLAVE")) {
+                    genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+                }
+
+                // Iniciar Firebase (Solo Firestore y Auth, NO Functions)
+                if (!firebaseConfig.apiKey.includes("TU_API_KEY")) {
                     app = firebase.initializeApp(firebaseConfig);
                     db = firebase.firestore();
-                    functions = firebase.functions();
                     auth = firebase.auth();
-                    await auth.signInAnonymously(); // Login anónimo automático
-                    console.log("Firebase conectado.");
+                    await auth.signInAnonymously();
+                    console.log("Firebase conectado (Firestore)");
                 } else {
-                    throw new Error("Configuración pendiente");
+                    console.warn("Falta configurar Firebase. Usando modo local.");
                 }
-                
-                // Check URL Param ?id=ACTIVIDAD
+
+                // Cargar Datos
                 const urlParams = new URLSearchParams(window.location.search);
                 currentActivityId = urlParams.get('id');
 
-                if (currentActivityId) {
-                    await loadActivityFromFirestore(currentActivityId);
+                if (currentActivityId && db) {
+                    const doc = await db.collection('actividades').doc(currentActivityId).get();
+                    if (doc.exists) {
+                        activityPayload = doc.data();
+                        getEl('welcome-activity-title').textContent = activityPayload.titulo_actividad;
+                        getEl('btn-start-mission').disabled = false;
+                        getEl('btn-start-mission').textContent = "Aceptar Desafío";
+                    } else {
+                        throw new Error("Actividad no encontrada");
+                    }
                 } else {
-                    console.warn("No hay ID en URL. Cargando modo Demo.");
                     loadDemoMode();
                 }
 
             } catch (e) {
-                console.log("Modo Offline/Demo activado:", e);
-                loadDemoMode();
-            }
-        });
-
-        async function loadActivityFromFirestore(id) {
-            getEl('status-msg').textContent = "Descargando misión...";
-            try {
-                const doc = await db.collection('actividades').doc(id).get();
-                if (!doc.exists) throw new Error("Actividad no encontrada");
-                activityPayload = doc.data();
-                getEl('welcome-activity-title').textContent = activityPayload.titulo_actividad;
-                getEl('btn-start-mission').disabled = false;
-                getEl('btn-start-mission').textContent = "Aceptar Desafío";
-            } catch (e) {
-                alert("Error cargando actividad: " + e.message);
+                console.error("Error inicio:", e);
+                getEl('status-msg').textContent = "Error de conexión. Usando demo.";
                 loadDemoMode();
             }
         }
@@ -213,133 +217,109 @@
             getEl('welcome-activity-title').textContent = activityPayload.titulo_actividad + " (Demo)";
             getEl('btn-start-mission').disabled = false;
             getEl('btn-start-mission').textContent = "Probar Demo";
-            getEl('status-msg').textContent = "Modo desconectado activo";
         }
 
         function startGame() {
             const avatars = ["🦊", "🐼", "🐸", "🐙", "🦄", "🤖", "🚀", "🦁"];
             myAvatarIcon = avatars[Math.floor(Math.random() * avatars.length)];
             getEl('my-avatar').textContent = myAvatarIcon;
-            
             getEl('header-activity-title').textContent = activityPayload.titulo_actividad;
             
-            // Inyectar botones dinámicos
             const container = getEl('resource-buttons-container');
-            container.innerHTML = `
-                <button id="toggle-source-btn-inner" onclick="toggleSourceText()" class="text-xs bg-white border border-gray-300 px-3 py-1 rounded-full text-gray-600 hover:bg-gray-50 shadow-sm flex items-center gap-1 transition cursor-pointer"><span id="eye-icon">👁️</span> <span class="hidden sm:inline" id="toggle-text">Mostrar Texto</span></button>
-            `;
-            
+            container.innerHTML = `<button id="toggle-source-btn-inner" class="text-xs bg-white border border-gray-300 px-3 py-1 rounded-full text-gray-600 hover:bg-gray-50 shadow-sm flex items-center gap-1 transition cursor-pointer"><span id="eye-icon">👁️</span> <span class="hidden sm:inline" id="toggle-text">Mostrar Texto</span></button>`;
+            getEl('toggle-source-btn-inner').addEventListener('click', toggleSourceText);
+
             if(activityPayload.source_url) {
                 const a = document.createElement('a'); a.href = activityPayload.source_url; a.target="_blank"; a.className="text-xs bg-indigo-50 border border-indigo-200 px-3 py-1 rounded-full text-indigo-700 hover:bg-indigo-100 shadow-sm flex items-center gap-1 transition decoration-none"; a.innerHTML = `<span>🔗</span> <span class="hidden sm:inline">Fuente</span>`;
                 container.insertBefore(a, container.firstChild);
             }
-            if(activityPayload.rubric_url) {
-                const a = document.createElement('a'); a.href = activityPayload.rubric_url; a.target="_blank"; a.className="text-xs bg-orange-50 border border-orange-200 px-3 py-1 rounded-full text-orange-700 hover:bg-orange-100 shadow-sm flex items-center gap-1 transition decoration-none"; a.innerHTML = `<span>📋</span> <span class="hidden sm:inline">Rúbrica</span>`;
-                container.insertBefore(a, container.firstChild);
-            }
 
             renderSection(0);
-            
             getEl('login-screen').style.display = 'none';
             const appUI = getEl('app-interface');
             appUI.style.display = 'flex';
             setTimeout(() => appUI.style.opacity = '1', 50);
-            startClassSimulation();
         }
 
         function renderSection(index) {
             const section = activityPayload.contenido[index];
             getEl('dynamic-content-area').innerHTML = section.html_cuerpo;
             isSourceVisible = true; toggleSourceText(); currentFeedback = null;
-
             getEl('section-title-display').textContent = section.titulo_seccion;
             getEl('section-counter').textContent = `${index + 1}/${activityPayload.contenido.length}`;
-            
             getEl('input-title').value = ""; getEl('input-summary').value = "";
             getEl('input-title').disabled = false; getEl('input-summary').disabled = false;
             getEl('results-area').classList.add('hidden');
-            
-            const btn = getEl('btn-analyze');
-            if (currentEnergy > 5) {
-                getEl('no-energy-overlay').style.display = 'none';
-                btn.style.display = 'inline-flex';
-                btn.disabled = false;
-                btn.classList.remove('opacity-50', 'grayscale');
-                btn.innerHTML = `<span class="group-hover:rotate-12 transition-transform">✨</span><span class="flex flex-col items-start text-left leading-tight"><span>Analizar</span><span class="text-[10px] text-gray-400 font-normal">-${COST_BASE}% energía</span></span>`;
-            } else {
-                getEl('no-energy-overlay').style.display = 'flex';
-                btn.style.display = 'none';
-            }
+            getEl('btn-analyze').style.display = 'inline-flex';
             getEl('dynamic-content-area').scrollTop = 0;
             updateEnergyUI();
         }
 
-        // --- LÓGICA DE ANÁLISIS (Híbrida Local/Cloud) ---
-        async function analyzeResponse() {
+        // --- CEREBRO IA EN EL NAVEGADOR ---
+        async function analyzeWithGeminiDirect() {
             const input = getEl('input-summary').value;
             const wordCount = input.trim().split(/\s+/).filter(w => w.length > 0).length;
-
             if (wordCount < 5) { alert("Texto muy corto."); return; }
             if (currentEnergy <= 5) return;
 
             const btn = getEl('btn-analyze');
             btn.innerHTML = `Pensando...`;
-            btn.disabled = true;
-            btn.classList.add('opacity-75', 'cursor-not-allowed');
-
-            let result = null;
+            btn.disabled = true; btn.classList.add('opacity-75', 'cursor-not-allowed');
 
             try {
-                if (isDemoMode) {
-                    // SIMULACIÓN LOCAL (Para GitHub Pages sin Backend configurado)
+                let data;
+                
+                if (isDemoMode || !genAI) {
+                    // Simulación si no hay clave
                     await new Promise(r => setTimeout(r, 1000));
                     const config = activityPayload.contenido[currentStep].ia_config;
                     const textLower = input.toLowerCase();
                     const found = config.keywords.filter(k => textLower.includes(k));
                     const missing = config.keywords.filter(k => !textLower.includes(k));
-                    result = { found, missing, prototype: config.prototipo };
+                    data = { found, missing, prototype: config.prototipo };
                 } else {
-                    // LLAMADA REAL A FIREBASE CLOUD FUNCTIONS
-                    const analyzeFn = functions.httpsCallable('analizarResumenAlumno');
-                    // Enviamos solo lo necesario al backend
-                    const response = await analyzeFn({
-                        textoAlumno: input,
-                        idActividad: currentActivityId,
-                        idSeccion: currentStep, // 0, 1, 2...
-                        rubrica: activityPayload.contenido[currentStep].ia_config // Enviamos la config por seguridad si no está cacheada
-                    });
-                    result = response.data; 
+                    // LLAMADA REAL A GEMINI DESDE EL NAVEGADOR
+                    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash"});
+                    const config = activityPayload.contenido[currentStep].ia_config;
+                    
+                    const prompt = `
+                        Eres un profesor. Evalúa este resumen escolar.
+                        Keywords obligatorias: ${JSON.stringify(config.keywords)}
+                        Resumen ideal: "${config.prototipo}"
+                        Texto alumno: "${input}"
+                        
+                        Responde SOLO este JSON:
+                        { "found": ["palabras_encontradas"], "missing": ["palabras_faltantes"], "prototype": "feedback breve" }
+                    `;
+
+                    const result = await model.generateContent(prompt);
+                    const response = await result.response;
+                    let text = response.text().replace(/```json|```/g, '').trim();
+                    data = JSON.parse(text);
                 }
-                
-                processResult(result, wordCount);
+
+                processResult(data, wordCount);
 
             } catch (error) {
-                console.error(error);
-                alert("Error al conectar con la IA. Intenta de nuevo.");
-                btn.disabled = false;
-                btn.classList.remove('opacity-75', 'cursor-not-allowed');
-                btn.innerHTML = "Reintentar";
+                console.error("Error IA:", error);
+                alert("Error al conectar con la IA. Verifica tu clave API.");
+                btn.disabled = false; btn.classList.remove('opacity-75', 'cursor-not-allowed'); btn.innerHTML = "Reintentar";
             }
         }
 
         function processResult(data, wordCount) {
-            // data trae { found: [], missing: [], prototype: "" }
             let cost = COST_BASE + (data.missing.length * COST_PENALTY);
             if (wordCount < 15) cost += 10;
-
             currentEnergy = Math.max(0, currentEnergy - cost);
             updateEnergyUI();
             
             getEl('student-panel').classList.add('damage-flash');
             setTimeout(() => getEl('student-panel').classList.remove('damage-flash'), 500);
 
-            getEl('input-title').disabled = true;
-            getEl('input-summary').disabled = true;
+            getEl('input-title').disabled = true; getEl('input-summary').disabled = true;
             getEl('btn-analyze').style.display = 'none';
-
             currentFeedback = data;
             
-            // Render Feedback
             getEl('results-area').classList.remove('hidden');
             getEl('feedback-good').innerHTML = data.found.length ? data.found.map(k=>`<span class="px-2 py-1 bg-white border border-green-200 rounded text-xs text-green-700">✓ ${k}</span>`).join('') : `<span class="text-xs text-gray-400">0 detectados</span>`;
             getEl('damage-calc').textContent = `-${cost}%`;
@@ -347,11 +327,15 @@
             getEl('prototype-display').textContent = `"${data.prototype}"`;
 
             totalAICalls++;
-            const totalKeywords = data.found.length + data.missing.length;
-            if (totalKeywords > 0) accumulatedAccuracy += (data.found.length / totalKeywords) * 100;
+            // Guardar en Firestore si está activo
+            if (db && auth && auth.currentUser) {
+                const intentoRef = db.collection('actividades').doc(currentActivityId)
+                                     .collection('intentos_alumnos').doc(`${auth.currentUser.uid}_${currentStep}`);
+                intentoRef.set({ count: firebase.firestore.FieldValue.increment(1), last_update: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
+            }
         }
 
-        // --- RESTO DE UTILIDADES (Igual que antes) ---
+        // Utilidades UI
         function toggleSourceText() {
             isSourceVisible = !isSourceVisible;
             const content = getEl('dynamic-content-area');
@@ -376,16 +360,10 @@
             if (currentStep < activityPayload.contenido.length) renderSection(currentStep);
             else showCompletionScreen();
         }
-        function forceManualFinish() {
-            getEl('no-energy-overlay').style.display = 'none';
-            currentFeedback = { found: [], missing: [], prototype: "Manual (Sin Energía)" };
-            nextSection();
-        }
         function showCompletionScreen() {
             getEl('completion-screen').style.display = 'flex';
             getEl('final-stats-energy').textContent = `${currentEnergy}%`;
             getEl('final-stats-calls').textContent = totalAICalls;
-            getEl('final-stats-accuracy').textContent = `${Math.round(accumulatedAccuracy / activityPayload.contenido.length)}%`;
         }
         function handleInputStats(e) {
             const val = e.target.value.trim();
@@ -398,9 +376,8 @@
             const blob = new Blob([content], { type: 'text/plain' });
             const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = "Mision_AulaIA.txt"; link.click();
         }
-        function startClassSimulation() {
-            setInterval(() => { if(classAvgProgress < 95) { classAvgProgress += Math.random(); if(getEl('class-avg-progress')) getEl('class-avg-progress').style.width = `${classAvgProgress}%`; } }, 2000);
-        }
+
+        init();
     </script>
 </body>
 </html>
