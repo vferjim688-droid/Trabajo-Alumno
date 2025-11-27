@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&family=Source+Serif+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
     
-    <!-- 1. IMPORTANTE: Mapa de importación para usar la IA directamente en el navegador -->
+    <!-- 1. CEREBRO IA (Librería Cliente) -->
     <script type="importmap">
       {
         "imports": {
@@ -16,7 +16,7 @@
       }
     </script>
 
-    <!-- FIREBASE SDKs (Compat) -->
+    <!-- 2. MEMORIA (Firebase - Solo Base de Datos Gratuita) -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
@@ -34,8 +34,8 @@
         }
     </script>
     <style>
-        /* Estilos base */
         .readable-content p { margin-bottom: 1.5rem; line-height: 1.8; color: #374151; font-family: 'Source Serif Pro', serif; font-size: 1.125rem; }
+        .readable-content strong { color: #111827; font-weight: 600; background: #fef3c7; padding: 0 4px; border-radius: 2px; }
         .readable-content ul { margin-left: 1.5rem; margin-bottom: 1.5rem; list-style-type: disc; }
         .readable-content li { margin-bottom: 0.5rem; font-family: 'Source Serif Pro', serif; font-size: 1.125rem; color: #374151; }
         .thin-scroll::-webkit-scrollbar { width: 6px; } .thin-scroll::-webkit-scrollbar-track { background: transparent; } .thin-scroll::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 20px; }
@@ -48,7 +48,7 @@
 </head>
 <body class="bg-gray-50 text-gray-800 h-screen flex flex-col overflow-hidden selection:bg-brand-100 selection:text-brand-900">
 
-    <!-- PANTALLA DE CARGA -->
+    <!-- PANTALLA CARGA -->
     <div id="login-screen" class="fixed inset-0 z-50 bg-white flex flex-col items-center justify-center p-4">
         <div class="max-w-md w-full text-center space-y-8 animate-fade-in">
             <div class="inline-flex items-center justify-center w-20 h-20 bg-brand-50 rounded-3xl mb-4 shadow-sm border border-brand-100"><span class="text-4xl">🔋</span></div>
@@ -74,7 +74,7 @@
         </div>
     </div>
 
-    <!-- INTERFAZ PRINCIPAL -->
+    <!-- INTERFAZ -->
     <div id="app-interface" class="flex-grow flex flex-col h-full hidden opacity-0 transition-opacity duration-700">
         <header class="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between shrink-0 h-16 shadow-sm z-10 relative">
             <div class="flex items-center gap-4"><div class="w-8 h-8 bg-brand-600 rounded-lg flex items-center justify-center text-white font-bold">A</div><div class="hidden md:block"><h2 class="font-bold text-gray-700 text-sm">Misión en curso</h2><div class="text-[10px] text-gray-400 uppercase tracking-widest">Survival Mode</div></div></div>
@@ -85,7 +85,7 @@
         </header>
 
         <main class="flex-grow flex flex-col lg:flex-row overflow-hidden">
-            <!-- IZQUIERDA: FUENTE -->
+            <!-- IZQUIERDA -->
             <section class="w-full lg:w-[45%] bg-white border-r border-gray-200 flex flex-col h-1/2 lg:h-full transition-all duration-500 relative">
                 <div class="p-4 border-b border-gray-100 bg-gray-50/50 flex flex-col sm:flex-row justify-between items-center sticky top-0 z-10 gap-2">
                     <span class="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">Material de Estudio</span>
@@ -97,7 +97,7 @@
                 </div>
             </section>
 
-            <!-- DERECHA: TRABAJO -->
+            <!-- DERECHA -->
             <section id="student-panel" class="w-full lg:w-[55%] bg-gray-50 flex flex-col h-1/2 lg:h-full relative shadow-[inset_4px_0_15px_-4px_rgba(0,0,0,0.1)] transition-colors duration-300">
                 <div class="flex-grow p-6 lg:p-8 overflow-y-auto thin-scroll pb-24">
                     <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6 transition-all focus-within:ring-2 focus-within:ring-brand-100 focus-within:border-brand-300">
@@ -109,7 +109,7 @@
                     </div>
                     <div id="results-area" class="hidden space-y-6 animate-fade-in">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div class="bg-green-50 rounded-xl p-4 border border-green-100"><h4 class="font-bold text-green-900 text-sm mb-2">Aciertos</h4><div id="feedback-good" class="flex flex-wrap gap-2"></div></div><div class="bg-amber-50 rounded-xl p-4 border border-amber-100"><h4 class="font-bold text-amber-900 text-sm mb-2">Faltantes (<span id="damage-calc" class="text-red-600 font-black">-0%</span>)</h4><div id="feedback-missing" class="flex flex-wrap gap-2"></div></div></div>
-                        <div class="bg-indigo-50 rounded-xl p-5 border border-indigo-100 relative overflow-hidden"><h4 class="font-bold text-indigo-900 text-sm mb-2 flex items-center gap-2"><span>🏆</span> Referencia</h4><p id="prototype-display" class="text-indigo-800 text-sm italic leading-relaxed opacity-90"></p></div>
+                        <div class="bg-indigo-50 rounded-xl p-5 border border-indigo-100 relative overflow-hidden"><h4 class="font-bold text-indigo-900 text-sm mb-2 flex items-center gap-2"><span>🏆</span> Referencia Docente</h4><p id="prototype-display" class="text-indigo-800 text-sm italic leading-relaxed opacity-90"></p></div>
                         <button id="btn-next" class="w-full py-4 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl shadow-lg transition flex items-center justify-center gap-2 cursor-pointer">Siguiente Apartado →</button>
                     </div>
                 </div>
@@ -120,36 +120,36 @@
         </main>
     </div>
 
-    <!-- ⚠️ ZONA DE CONFIGURACIÓN: AQUÍ DEBES PEGAR TUS CLAVES ⚠️ -->
+    <!-- ⚠️ CONFIGURACIÓN DE LLAVES ⚠️ -->
     <script type="module">
         import { GoogleGenerativeAI } from "@google/generative-ai";
 
-        // 1. PEGA AQUÍ TU CLAVE DE GEMINI (La que empieza por AIza...)
-        // Obtenla en: https://aistudio.google.com/app/apikey
-        const GEMINI_API_KEY = "TU_CLAVE_API_DE_GEMINI_AQUI";
+        // ===================================================================================
+        // 1. LLAVE DEL CEREBRO (IA) - PEGA AQUÍ TU "NUEVA CLAVE PROTEGIDA" DE GOOGLE CLOUD
+        // ===================================================================================
+        const GEMINI_API_KEY = "AIzaSyDamOVxKa9zooI-4OqZGnhI-fZV5HOPkm0"; 
 
-        // 2. PEGA AQUÍ TU CONFIGURACIÓN DE FIREBASE (Para guardar progreso)
+        // ===================================================================================
+        // 2. LLAVE DE LA CASA (Firebase) - PEGA AQUÍ TU CONFIG DE FIREBASE CONSOLE
+        // ===================================================================================
         const firebaseConfig = {
-            apiKey: "TU_API_KEY_DE_FIREBASE",
-            authDomain: "TU_PROYECTO.firebaseapp.com",
-            projectId: "TU_PROYECTO",
-            storageBucket: "TU_PROYECTO.appspot.com",
-            messagingSenderId: "123...",
-            appId: "1:123..."
-        };
+            apiKey: "AIzaSyDXYyKlUEa6Al8amPssGGEPy1PFuHcSbyU",
+            authDomain: "trabajo-alumno.firebaseapp.com",
+            projectId: "trabajo-alumno",
+            storageBucket: "trabajo-alumno.firebasestorage.app",
+            messagingSenderId: "922915834506",
+            appId: "1:922915834506:web:581faaee27fa644c027b73"
+           };
 
         // --- INICIO DEL SISTEMA ---
         let app, db, auth, genAI;
         let currentActivityId, activityPayload;
         let isDemoMode = false;
         
-        // Estado del juego
         let currentStep=0, isSourceVisible=false, studentWork=[], currentFeedback=null, myAvatarIcon="", currentEnergy=100, totalAICalls=0, accumulatedAccuracy=0;
         const COST_BASE=15, COST_PENALTY=5;
-        
         const getEl = (id) => document.getElementById(id);
 
-        // Datos Demo por si falla la red
         const mockPayload = {
             titulo_actividad: "Demo: Computación Física",
             source_url: "#", rubric_url: "#",
@@ -160,33 +160,29 @@
         };
 
         async function init() {
-            // Listeners
             getEl('btn-start-mission').addEventListener('click', startGame);
             getEl('toggle-source-btn').addEventListener('click', toggleSourceText);
-            getEl('btn-analyze').addEventListener('click', analyzeWithGeminiDirect); // Llamada directa
+            getEl('btn-analyze').addEventListener('click', analyzeWithGeminiDirect);
             getEl('btn-next').addEventListener('click', nextSection);
             getEl('btn-download').addEventListener('click', downloadWork);
             getEl('input-summary').addEventListener('input', handleInputStats);
             getEl('dynamic-content-area').addEventListener('copy', (e) => e.preventDefault());
 
             try {
-                // Iniciar IA
-                if (!GEMINI_API_KEY.includes("TU_CLAVE")) {
+                // Iniciar IA (Cliente)
+                if (!GEMINI_API_KEY.includes("TU_NUEVA_CLAVE")) {
                     genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
                 }
 
-                // Iniciar Firebase (Solo Firestore y Auth, NO Functions)
+                // Iniciar Firebase (Solo BD)
                 if (!firebaseConfig.apiKey.includes("TU_API_KEY")) {
                     app = firebase.initializeApp(firebaseConfig);
                     db = firebase.firestore();
                     auth = firebase.auth();
                     await auth.signInAnonymously();
-                    console.log("Firebase conectado (Firestore)");
-                } else {
-                    console.warn("Falta configurar Firebase. Usando modo local.");
+                    console.log("Conectado a Firestore.");
                 }
 
-                // Cargar Datos
                 const urlParams = new URLSearchParams(window.location.search);
                 currentActivityId = urlParams.get('id');
 
@@ -198,15 +194,15 @@
                         getEl('btn-start-mission').disabled = false;
                         getEl('btn-start-mission').textContent = "Aceptar Desafío";
                     } else {
-                        throw new Error("Actividad no encontrada");
+                        console.warn("Actividad no encontrada.");
+                        loadDemoMode();
                     }
                 } else {
                     loadDemoMode();
                 }
 
             } catch (e) {
-                console.error("Error inicio:", e);
-                getEl('status-msg').textContent = "Error de conexión. Usando demo.";
+                console.error("Error:", e);
                 loadDemoMode();
             }
         }
@@ -217,6 +213,7 @@
             getEl('welcome-activity-title').textContent = activityPayload.titulo_actividad + " (Demo)";
             getEl('btn-start-mission').disabled = false;
             getEl('btn-start-mission').textContent = "Probar Demo";
+            getEl('status-msg').textContent = "Modo Demo Activado";
         }
 
         function startGame() {
@@ -255,7 +252,6 @@
             updateEnergyUI();
         }
 
-        // --- CEREBRO IA EN EL NAVEGADOR ---
         async function analyzeWithGeminiDirect() {
             const input = getEl('input-summary').value;
             const wordCount = input.trim().split(/\s+/).filter(w => w.length > 0).length;
@@ -268,9 +264,7 @@
 
             try {
                 let data;
-                
                 if (isDemoMode || !genAI) {
-                    // Simulación si no hay clave
                     await new Promise(r => setTimeout(r, 1000));
                     const config = activityPayload.contenido[currentStep].ia_config;
                     const textLower = input.toLowerCase();
@@ -278,18 +272,17 @@
                     const missing = config.keywords.filter(k => !textLower.includes(k));
                     data = { found, missing, prototype: config.prototipo };
                 } else {
-                    // LLAMADA REAL A GEMINI DESDE EL NAVEGADOR
                     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash"});
                     const config = activityPayload.contenido[currentStep].ia_config;
                     
                     const prompt = `
-                        Eres un profesor. Evalúa este resumen escolar.
-                        Keywords obligatorias: ${JSON.stringify(config.keywords)}
-                        Resumen ideal: "${config.prototipo}"
-                        Texto alumno: "${input}"
+                        Eres un profesor experto evaluando alumnos.
+                        Rúbrica: ${JSON.stringify(config.keywords)}
+                        Ideal: "${config.prototipo}"
+                        Alumno: "${input}"
                         
                         Responde SOLO este JSON:
-                        { "found": ["palabras_encontradas"], "missing": ["palabras_faltantes"], "prototype": "feedback breve" }
+                        { "found": ["palabras_usadas"], "missing": ["palabras_faltan"], "prototype": "feedback breve" }
                     `;
 
                     const result = await model.generateContent(prompt);
@@ -297,12 +290,10 @@
                     let text = response.text().replace(/```json|```/g, '').trim();
                     data = JSON.parse(text);
                 }
-
                 processResult(data, wordCount);
-
             } catch (error) {
                 console.error("Error IA:", error);
-                alert("Error al conectar con la IA. Verifica tu clave API.");
+                alert("Error de conexión. Verifica la API Key.");
                 btn.disabled = false; btn.classList.remove('opacity-75', 'cursor-not-allowed'); btn.innerHTML = "Reintentar";
             }
         }
@@ -327,7 +318,6 @@
             getEl('prototype-display').textContent = `"${data.prototype}"`;
 
             totalAICalls++;
-            // Guardar en Firestore si está activo
             if (db && auth && auth.currentUser) {
                 const intentoRef = db.collection('actividades').doc(currentActivityId)
                                      .collection('intentos_alumnos').doc(`${auth.currentUser.uid}_${currentStep}`);
@@ -335,7 +325,6 @@
             }
         }
 
-        // Utilidades UI
         function toggleSourceText() {
             isSourceVisible = !isSourceVisible;
             const content = getEl('dynamic-content-area');
